@@ -1,0 +1,38 @@
+---
+title: "p8105_hw5_jz3899"
+author: "Jicong Zhang"
+date: "2025-11-13"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rvest)
+knitr::opts_chunk$set(
+  fig.width = 9,
+  fig.asp = .6,
+  out.width = "100%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+# Problem 1
+```{r}
+shared_birthday = function(group_size){
+  birthdays = sample(1:365, size = group_size, replace = TRUE)
+  return(length(unique(birthdays)) < group_size)
+}
+
+
+```
+
