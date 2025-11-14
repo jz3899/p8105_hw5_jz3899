@@ -33,6 +33,22 @@ shared_birthday = function(group_size){
   return(length(unique(birthdays)) < group_size)
 }
 
+n_sim = 10000
+group_sizes = 2:50
+prob_shared = numeric(length(group_sizes))
+set.seed(1)
 
+for(i in seq_along(group_sizes)){
+  group = group_sizes[i]
+  results = replicate(n_sim, shared_birthday(group))
+  prob_shared[i] = mean(results)
+}
+
+plot(group_sizes, prob_shared,
+     type = "l", lwd = 2,
+     xlab = "Group Size",
+     ylab = "Probability of Shared Birthday",
+     main = "Birthday Problem Simulation (10,000 runs per group size)")
+grid()
 ```
 
