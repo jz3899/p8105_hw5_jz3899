@@ -52,3 +52,85 @@ plot(group_sizes, prob_shared,
 grid()
 ```
 
+# Problem 2
+```{r}
+set.seed(1)
+n = 30
+sigma = 50
+mu = 0:6
+nsim = 5000
+results = map_df(mu, function(mu_true){
+  sims = replicate(nsim, {
+    x = rnorm(n, mean = mu_true, sd=sigma)
+    test = t.test(x,mu = 0)
+    tibble(
+      mu_hat = mean(x),
+      pval=test$p.value,
+      reject = test$p.value <0.05,
+      mu_true = mu_true
+    )
+  },simplify = FALSE)
+  bind_rows(sims)
+})
+
+power_df = results %>%
+  group_by(mu_true) %>%
+  summarize(power = mean(reject))
+
+mu_hat_df = results %>%
+  group_by(mu_true) %>%
+  summarize(mean_mu = mean(mu_hat),
+            mean_mu_reject = mean(mu_hat[reject]))
+```
+
+```{r}
+ggplot(power_df, aes(x = mu_true, y = power)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Power vs True Mean (Effect Size)",
+       x = "True Mean (μ)",
+       y = "Power (Probability of Rejecting H0)")
+```
+
+```{r}
+ggplot(mu_hat_df, aes(x = mu_true)) +
+  geom_line(aes(y = mean_mu), size = 1) +
+  geom_point(aes(y = mean_mu), size = 2) +
+  geom_line(aes(y = mean_mu_reject)) +
+  geom_point(aes(y = mean_mu_reject), shape = 17, size = 2) +
+  labs(title = "Average Sample Means",
+       x = "True Mean (μ)",
+       y = "Average Estimated Mean (μ̂)")
+```
+
+# Problem 3
+```{r}
+homi_df =
+  read_csv("./homicide-data.csv", na = c("NA",".", "")) %>%
+  janitor::clean_names()
+homi_df
+glimpse(homi_df)
+```
+
+```{r}
+city_df = homi_df %>%
+  mutate(city_state = str_c(city, state, sep = ",")) %>%
+  group_by(city_state) %>%
+  summarize(
+    total = n(),
+    unsolved = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  )
+city_df
+```
+
+```{r}
+baltimore = city_df %>%
+  filter(city_state == "Baltimore,MD")
+bal_prop = prop.test(baltimore$unsolved, baltimore$total)
+bal_tidy = broom::tidy(bal_prop)
+bal_tidy %>%
+  select(estimate, conf.low, conf.high)
+bal_tidy
+
+```
+
