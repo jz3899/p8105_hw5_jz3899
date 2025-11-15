@@ -92,6 +92,8 @@ ggplot(power_df, aes(x = mu_true, y = power)) +
        y = "Power (Probability of Rejecting H0)")
 ```
 
+**Power is low when μ = 0 or close to 0. As μ increases, the probability of rejecting the false null increases sharply. So larger effect sizes increase statistical power.**
+
 ```{r}
 ggplot(mu_hat_df, aes(x = mu_true)) +
   geom_line(aes(y = mean_mu), size = 1) +
@@ -103,6 +105,8 @@ ggplot(mu_hat_df, aes(x = mu_true)) +
        y = "Average Estimated Mean (μ̂)")
 ```
 
+**The overall mean μhat closely matches the true μ.**
+
 # Problem 3
 ```{r}
 homi_df =
@@ -111,6 +115,8 @@ homi_df =
 homi_df
 glimpse(homi_df)
 ```
+
+**There are 52179 rows and 12 columns in this dataset. Some important variables are reported_date, victim_age, city and state.**
 
 ```{r}
 city_df = homi_df %>%
@@ -129,8 +135,35 @@ baltimore = city_df %>%
 bal_prop = prop.test(baltimore$unsolved, baltimore$total)
 bal_tidy = broom::tidy(bal_prop)
 bal_tidy %>%
-  select(estimate, conf.low, conf.high)
+  select(estimate, conf.low, conf.high) %>%
+  knitr::kable(digits = 3)
 bal_tidy
+
+```
+
+```{r}
+homicides_props = city_df %>%
+  mutate(
+    test_results = map2(unsolved, total, ~ prop.test(.x, .y)),
+    tidy_results = map(test_results, broom::tidy)
+  ) %>%
+  unnest(tidy_results) %>%
+  select(city_state, estimate, conf.low, conf.high, total, unsolved)
+homicides_props
+```
+
+```{r}
+homicides_props %>%
+  mutate(city_state = fct_reorder(city_state, estimate)) %>%
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+  coord_flip() +
+  labs(
+    title = "Proportion of Unsolved Homicides by City",
+    x = "City",
+    y = "Estimated Proportion Unsolved"
+  )
 
 ```
 
